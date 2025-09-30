@@ -1,0 +1,22 @@
+# Bun configuration
+# https://bun.sh/docs/runtime/bunfig
+
+[install]
+# Cache directory
+cache = "node_modules/.cache/bun"
+
+# Registry configuration
+registry = "https://registry.npmjs.org/"
+
+# Lockfile settings
+lockfile = true
+
+[test]
+# Test configuration
+timeout = 5000
+
+[build]
+# Build configuration for production
+target = "bun"
+outdir = "./dist"
+minify = true

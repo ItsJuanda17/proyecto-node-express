@@ -4,11 +4,15 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "bun --watch index.ts",
-    "start": "bun index.ts",
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts",
+    "build": "bun build index.ts --outdir ./dist --target bun",
+    "preview": "bun run dist/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "docker:build": "docker build -t proyecto-node-express .",
+    "docker:run": "docker run -p 3000:3000 proyecto-node-express"
   },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
