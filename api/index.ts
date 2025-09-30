@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema({
 }, {
   timestamps: true,
   toJSON: {
-    transform: function(doc, ret) {
+    transform: function(doc: any, ret: any) {
       delete ret.password;
       delete ret.__v;
       return ret;
@@ -52,7 +52,7 @@ const userSchema = new mongoose.Schema({
 });
 
 // Hash password antes de guardar
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function(next: any) {
   if (!this.isModified('password')) return next();
   const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '12');
   this.password = await bcrypt.hash(this.password, saltRounds);
@@ -172,7 +172,7 @@ app.post('/api/auth/register', async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET || 'fallback-secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: '7d' }
     );
 
     res.status(201).json({
@@ -219,16 +219,16 @@ app.post('/api/auth/login', async (req, res) => {
     const token = jwt.sign(
       { userId: user._id, email: user.email },
       process.env.JWT_SECRET || 'fallback-secret',
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: '7d' }
     );
 
     // Remove password from response
-    user.password = undefined;
+    const userResponse = user.toJSON();
 
     res.json({
       success: true,
       message: 'Login exitoso',
-      data: { user, token }
+      data: { user: userResponse, token }
     });
   } catch (error) {
     console.error('Error en login:', error);
