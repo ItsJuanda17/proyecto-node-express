@@ -1,95 +1,55 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
-import connectDB from './src/config/database';
-import routes from './src/routes';
-import { errorHandler, notFound } from './src/middleware';
-import { createSuperAdmin } from './src/utils';
 
 // Cargar variables de entorno
 dotenv.config();
 
 const app = express();
 
-// Configurar rate limiting
-const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000'),
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100'),
-  message: {
-    success: false,
-    message: 'Demasiadas solicitudes desde esta IP, intenta de nuevo más tarde'
-  },
-  standardHeaders: true,
-  legacyHeaders: false
-});
-
-// Middlewares de seguridad
+// Middlewares básicos
 app.use(helmet());
 app.use(cors());
-app.use(limiter);
-
-// Middlewares de parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Ruta de salud del servidor
+// Ruta de salud básica
 app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: 'API Backend - Sistema de Usuarios',
+    message: 'API Backend - Sistema funcionando',
     version: '1.0.0',
     environment: process.env.NODE_ENV || 'development',
-    endpoints: {
-      auth: '/api/auth/login',
-      register: '/api/auth/register',
-      profile: '/api/users/profile',
-      users: '/api/users',
-      projects: '/api/projects',
-      tasks: '/api/tasks'
-    }
+    timestamp: new Date().toISOString()
   });
 });
 
-// Rutas de la API
-app.use('/api', routes);
+// Ruta de prueba
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'OK',
+    message: 'Servidor funcionando correctamente'
+  });
+});
+
+// Middleware de manejo de errores simple
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error('Error:', err);
+  res.status(500).json({
+    success: false,
+    message: 'Error interno del servidor',
+    error: process.env.NODE_ENV === 'development' ? err.message : 'Internal Server Error'
+  });
+});
 
 // Middleware para rutas no encontradas
-app.use(notFound);
-
-// Middleware de manejo de errores
-app.use(errorHandler);
-
-// Para Vercel, inicializar la conexión DB de forma diferente
-let dbConnected = false;
-
-const initializeDB = async () => {
-  if (!dbConnected) {
-    try {
-      await connectDB();
-      await createSuperAdmin();
-      dbConnected = true;
-      console.log('[VERCEL] Base de datos inicializada');
-    } catch (error) {
-      console.log('[VERCEL] Error en DB, continuando sin base de datos:', error);
-    }
-  }
-};
-
-// Middleware para inicializar DB en cada request (Vercel serverless)
-app.use(async (req, res, next) => {
-  await initializeDB();
-  next();
-});
-
-// Para desarrollo local
-if (process.env.NODE_ENV !== 'production') {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`[SERVER] http://localhost:${PORT}`);
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Ruta no encontrada'
   });
-}
+});
 
 // Export para Vercel
 export default app;
