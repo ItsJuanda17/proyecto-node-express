@@ -3,13 +3,19 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "bun run --watch index.ts",
+    "start": "bun run index.ts",
+    "build": "bun build index.ts --outdir ./dist --target bun",
+    "preview": "bun run dist/index.js",
+    "docker:build": "docker build -t proyecto-node-express .",
+    "docker:run": "docker run -p 3000:3000 proyecto-node-express"
+  },
   "devDependencies": {
     "@types/bcryptjs": "^3.0.0",
     "@types/bun": "latest",
     "@types/cors": "^2.8.19",
-    "@types/jsonwebtoken": "^9.0.10"
-  },
-  "peerDependencies": {
+    "@types/jsonwebtoken": "^9.0.10",
     "typescript": "^5"
   },
   "dependencies": {
